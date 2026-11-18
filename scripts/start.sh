@@ -157,9 +157,13 @@ install_sourcemod() {
 }
 
 install_accelerator() {
-    local path name
-    path="$(curl -fsSL --retry 3 "https://builds.limetech.io/?p=accelerator" \
-            | grep -m1 -o 'files/accelerator-[^"]*-linux\.zip')" || return 1
+    local page path name
+    # Fetch the page first: piping curl into `grep -m1` makes curl fail with
+    # error 23 when grep exits early (fatal under pipefail).
+    page="$(curl -fsSL --retry 3 "https://builds.limetech.io/?p=accelerator")" || return 1
+    path="$(grep -m1 -o 'files/accelerator-[^"]*-linux\.zip' <<<"$page" || true)"
+    path="${path%%$'\n'*}"
+    [ -n "$path" ] || { warn "No Linux build found on the Accelerator page"; return 1; }
     name="$(basename "$path")"
     [ "$name" = "$(marker_get accelerator)" ] && { log "Accelerator $name is up to date."; return 0; }
     log "Installing Accelerator $name..."
@@ -195,7 +199,8 @@ install_sourcecoop() {
 install_metamod    || addon_failed metamod
 install_sourcemod  || addon_failed sourcemod
 if is_true "$INSTALL_ACCELERATOR"; then
-    install_accelerator || addon_failed accelerator
+    # Optional crash reporter: never block server startup on it.
+    install_accelerator || warn "Accelerator install/update failed; continuing without it."
 fi
 install_sourcecoop || addon_failed sourcecoop
 rm -rf "${TMP_DIR:?}"/*
