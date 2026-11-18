@@ -20,6 +20,7 @@ APP_ID=346680
 : "${UPDATE_ON_START:=true}" "${VALIDATE:=false}" "${SOURCECOOP_VERSION:=latest}" "${METAMOD_BRANCH:=1.12}"
 : "${SOURCEMOD_URL:=}" "${INSTALL_ACCELERATOR:=true}" "${DELETE_TEXTURE_VPKS:=false}" "${EXTRA_ARGS:=}"
 : "${STACK_LIMIT_KB:=8192}"
+: "${AUTOSAVE:=true}" "${RESUME_PROGRESS:=true}" "${AUTOSAVE_INTERVAL:=120}"
 
 export HOME="${HOME:-$DATA_DIR/home}"
 
@@ -206,6 +207,19 @@ fi
 install_sourcecoop || addon_failed sourcecoop
 rm -rf "${TMP_DIR:?}"/*
 
+# Plugins bundled with the image (compiled at build time). The image owns
+# these files, so they are refreshed on every start.
+SM_PLUGINS_DIR="$GAME_DIR/addons/sourcemod/plugins"
+SAVE_DIR="$GAME_DIR/addons/sourcemod/data/srccoop/savedata"
+if is_true "$AUTOSAVE"; then
+    mkdir -p "$SM_PLUGINS_DIR"
+    cp -f /opt/plugins/*.smx "$SM_PLUGINS_DIR/"
+    log "Autosave plugin enabled (saves every ${AUTOSAVE_INTERVAL}s)."
+else
+    rm -f "$SM_PLUGINS_DIR/srccoop_autosave.smx"
+    log "AUTOSAVE=false - autosave plugin disabled."
+fi
+
 # --------------------------------------------------------------------------
 # Configs
 # --------------------------------------------------------------------------
@@ -244,7 +258,22 @@ q() { local v="${1//\"/}"; v="${v//$'\n'/ }"; printf '"%s"' "$v"; }
     echo "sv_password $(q "$SERVER_PASSWORD")"
     echo "rcon_password $(q "$RCON_PASSWORD")"
     echo "sv_lan 0"
+    if is_true "$AUTOSAVE"; then
+        echo "sc_autosave_interval $(q "$AUTOSAVE_INTERVAL")"
+    fi
 } > "$CFG_DIR/docker.cfg"
+
+# Resume the last map the autosave plugin recorded.
+LAUNCH_MAP="$START_MAP"
+if is_true "$AUTOSAVE" && is_true "$RESUME_PROGRESS" && [ -f "$SAVE_DIR/autosave_map.txt" ]; then
+    saved_map="$(head -n1 "$SAVE_DIR/autosave_map.txt" | tr -d '\r[:space:]')"
+    if [[ "$saved_map" =~ ^[A-Za-z0-9_]+$ ]]; then
+        LAUNCH_MAP="$saved_map"
+        log "Resuming saved progress at $LAUNCH_MAP (run 'sc_autosave_reset' in the server console, or set RESUME_PROGRESS=false, to start over)."
+    else
+        warn "Ignoring invalid saved map name in $SAVE_DIR/autosave_map.txt"
+    fi
+fi
 
 if [ -n "$SERVER_PASSWORD" ]; then
     log "Server password is set."
@@ -281,7 +310,7 @@ if [ "${#inode}" -gt 10 ] || { [ "${#inode}" -eq 10 ] && [ "$inode" -gt 42949672
     warn "=================================================================="
 fi
 
-log "Starting srcds on port $PORT with map $START_MAP (maxplayers $MAXPLAYERS)..."
+log "Starting srcds on port $PORT with map $LAUNCH_MAP (maxplayers $MAXPLAYERS)..."
 # EXTRA_ARGS is intentionally word-split.
 # shellcheck disable=SC2086
 exec ./srcds_run \
@@ -295,5 +324,5 @@ exec ./srcds_run \
     +maxplayers "$MAXPLAYERS" \
     +mp_teamplay 1 \
     +mapcyclefile mapcycle.txt \
-    +map "$START_MAP" \
+    +map "$LAUNCH_MAP" \
     $EXTRA_ARGS

@@ -5,6 +5,33 @@
 # and SourceCoop are installed into the /serverdata volume on first start and
 # kept up to date on every restart.
 
+# --- Build stage: compile the bundled SourceMod plugin(s) ------------------
+# Uses the same SourceMod build the server runs (1.12 git7163), verified by
+# checksum. The official mirror pruned it, so fall back to archive.org.
+FROM debian:bookworm-slim AS plugins
+
+ARG SM_NAME=sourcemod-1.12.0-git7163-linux.tar.gz
+ARG SM_SHA256=56d6a396fae37412c602e86ed163c5e58a45d90b8ee7f3046929aebd2e3b6267
+
+RUN apt-get update \
+ && apt-get install -y --no-install-recommends ca-certificates curl \
+ && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /sm
+RUN ( curl -fsSL -o sm.tar.gz "https://sm.alliedmods.net/smdrop/1.12/${SM_NAME}" \
+      || curl -fsSL -o sm.tar.gz "https://web.archive.org/web/20260502124756id_/https://sm.alliedmods.net/smdrop/1.12/${SM_NAME}" ) \
+ && echo "${SM_SHA256}  sm.tar.gz" | sha256sum -c - \
+ && tar -xzf sm.tar.gz addons/sourcemod/scripting \
+ && rm sm.tar.gz
+
+COPY plugin/ /src/
+RUN mkdir -p /opt/plugins \
+ && for f in /src/*.sp; do \
+      ./addons/sourcemod/scripting/spcomp64 -i./addons/sourcemod/scripting/include \
+        -o"/opt/plugins/$(basename "${f%.sp}").smx" "$f" || exit 1; \
+    done
+
+# --- Runtime image ----------------------------------------------------------
 FROM debian:bookworm-slim
 
 ARG DEBIAN_FRONTEND=noninteractive
@@ -34,6 +61,7 @@ RUN mkdir -p /opt/steamcmd \
  && curl -fsSL https://steamcdn-a.akamaihd.net/client/installer/steamcmd_linux.tar.gz \
     | tar -xz -C /opt/steamcmd
 
+COPY --from=plugins /opt/plugins/ /opt/plugins/
 COPY scripts/  /opt/scripts/
 COPY defaults/ /opt/defaults/
 RUN sed -i 's/\r$//' /opt/scripts/*.sh /opt/defaults/* \
@@ -58,6 +86,9 @@ ENV DATA_DIR=/serverdata \
     SOURCEMOD_URL="" \
     INSTALL_ACCELERATOR=true \
     DELETE_TEXTURE_VPKS=false \
+    AUTOSAVE=true \
+    RESUME_PROGRESS=true \
+    AUTOSAVE_INTERVAL=120 \
     EXTRA_ARGS=""
 
 EXPOSE 27015/tcp 27015/udp 27020/udp

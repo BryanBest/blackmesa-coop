@@ -73,6 +73,9 @@ own LAN, use the Unraid server's local IP address.
 | `METAMOD_BRANCH` | `1.12` | Metamod:Source branch. The latest build of this branch is used |
 | `INSTALL_ACCELERATOR` | `true` | Install the Accelerator crash reporter |
 | `DELETE_TEXTURE_VPKS` | `false` | Delete texture packs the server doesn't need (saves about 9 GB) |
+| `AUTOSAVE` | `true` | Save the current map and each player's gear automatically (see [Progress and autosave](#progress-and-autosave)) |
+| `RESUME_PROGRESS` | `true` | On start, load the last saved map instead of `START_MAP` |
+| `AUTOSAVE_INTERVAL` | `120` | Seconds between gear saves |
 | `EXTRA_ARGS` | *(empty)* | Extra srcds arguments, for example `-tickrate 66` |
 | `PUID` / `PGID` | `99` / `100` | Owner of the files in appdata |
 
@@ -121,6 +124,37 @@ to the same workshop item. The
 [official SourceCoop collection](https://steamcommunity.com/sharedfiles/filedetails/?id=2375865650)
 lists the supported maps. For details, see the
 [Server running tips](https://github.com/ampreeT/SourceCoop/wiki/Server-running-tips).
+
+## Progress and autosave
+
+SourceCoop has no save game of its own, so the image includes a small SourceMod plugin,
+`srccoop_autosave` (source in [`plugin/`](plugin/srccoop_autosave.sp)). It's compiled when
+the image is built.
+
+**What's saved**
+- **The current map:** recorded every time a map starts. After a restart (container
+  restart, Unraid reboot or crash), the server starts on that map instead of `START_MAP`.
+- **Each player's gear:** health, armor, weapons and ammo, saved every 2 minutes and
+  whenever someone leaves. When a player rejoins after a restart, the server gives their
+  gear back once and shows *"[Autosave] Restored your gear from the last session."* in chat.
+  Players who left earlier keep their saved gear.
+
+**What isn't saved:** your position within a map. After a restart you begin at the start
+of the map you were on.
+
+**Start the campaign over:** in the server console, run:
+
+```
+sc_autosave_reset
+changelevel bm_c0a0a
+```
+
+You can also set `RESUME_PROGRESS=false` to always start at `START_MAP`, or `AUTOSAVE=false`
+to turn the feature off completely. Run `sc_autosave_now` to save immediately, for example
+just before restarting the container.
+
+Save files live in `server/bms/addons/sourcemod/data/srccoop/savedata/`:
+`autosave_map.txt`, `autosave.txt` and one file per player in `players/`.
 
 ## About the SourceMod version
 
