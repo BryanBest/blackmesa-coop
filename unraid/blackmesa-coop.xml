@@ -1,0 +1,42 @@
+<?xml version="1.0"?>
+<Container version="2">
+  <Name>BlackMesa-Coop</Name>
+  <Repository>ghcr.io/CHANGE_ME/blackmesa-coop:latest</Repository>
+  <Registry>https://github.com/CHANGE_ME/blackmesa-coop/pkgs/container/blackmesa-coop</Registry>
+  <Network>bridge</Network>
+  <MyIP/>
+  <Shell>bash</Shell>
+  <Privileged>false</Privileged>
+  <Support>https://github.com/ampreeT/SourceCoop</Support>
+  <Project>https://github.com/ampreeT/SourceCoop</Project>
+  <Overview>Black Mesa Dedicated Server running the SourceCoop cooperative mod (Metamod:Source + SourceMod). The game server (~30 GB) is downloaded into the appdata folder on first start and updated on every restart. Use the container console (or docker attach) for the server console.</Overview>
+  <Category>GameServers:</Category>
+  <WebUI/>
+  <TemplateURL/>
+  <Icon>https://raw.githubusercontent.com/ampreeT/SourceCoop/master/images/logo-sc.png</Icon>
+  <ExtraParams>-it --restart=unless-stopped</ExtraParams>
+  <PostArgs/>
+  <CPUset/>
+  <Requires>Forward 27015 TCP and UDP on your router so friends can join over the internet.</Requires>
+
+  <Config Name="Server data" Target="/serverdata" Default="/mnt/user/appdata/blackmesa-coop" Mode="rw" Description="Game server, addons and configs (~30 GB). Configs live in server/bms/cfg." Type="Path" Display="always" Required="true" Mask="false">/mnt/user/appdata/blackmesa-coop</Config>
+
+  <Config Name="Game port (UDP)" Target="27015" Default="27015" Mode="udp" Description="Main game port." Type="Port" Display="always" Required="true" Mask="false">27015</Config>
+  <Config Name="Game port (TCP)" Target="27015" Default="27015" Mode="tcp" Description="RCON / server queries." Type="Port" Display="always" Required="true" Mask="false">27015</Config>
+  <Config Name="SourceTV port (UDP)" Target="27020" Default="27020" Mode="udp" Description="Optional SourceTV spectator port." Type="Port" Display="advanced" Required="false" Mask="false">27020</Config>
+
+  <Config Name="Server name" Target="SERVER_NAME" Default="Black Mesa: Cooperative" Mode="" Description="Name shown in the server browser." Type="Variable" Display="always" Required="false" Mask="false">Black Mesa: Cooperative</Config>
+  <Config Name="Server password" Target="SERVER_PASSWORD" Default="" Mode="" Description="Password players need to join. Leave empty for an open server." Type="Variable" Display="always" Required="false" Mask="true"></Config>
+  <Config Name="RCON password" Target="RCON_PASSWORD" Default="" Mode="" Description="Remote console password. Leave empty to disable RCON (recommended; use SourceMod admins instead)." Type="Variable" Display="always" Required="false" Mask="true"></Config>
+  <Config Name="Max players" Target="MAXPLAYERS" Default="32" Mode="" Description="Maximum player slots." Type="Variable" Display="always" Required="false" Mask="false">32</Config>
+  <Config Name="Start map" Target="START_MAP" Default="bm_c0a0a" Mode="" Description="Map loaded on startup (bm_c0a0a = start of the campaign)." Type="Variable" Display="always" Required="false" Mask="false">bm_c0a0a</Config>
+  <Config Name="Update on start" Target="UPDATE_ON_START" Default="true" Mode="" Description="Run SteamCMD update on every container start." Type="Variable" Display="advanced" Required="false" Mask="false">true</Config>
+  <Config Name="Validate files" Target="VALIDATE" Default="false" Mode="" Description="Verify all game files with SteamCMD on start (slow). Use if the server is broken." Type="Variable" Display="advanced" Required="false" Mask="false">false</Config>
+  <Config Name="SourceCoop version" Target="SOURCECOOP_VERSION" Default="latest" Mode="" Description="'latest' or a release tag such as v1.6." Type="Variable" Display="advanced" Required="false" Mask="false">latest</Config>
+  <Config Name="SourceMod URL" Target="SOURCEMOD_URL" Default="" Mode="" Description="Empty = SourceMod 1.12 build 7163 (the version SourceCoop requires). 'latest' = newest 1.12 build, or a full .tar.gz URL." Type="Variable" Display="advanced" Required="false" Mask="false"></Config>
+  <Config Name="Install Accelerator" Target="INSTALL_ACCELERATOR" Default="true" Mode="" Description="Install the Accelerator crash-report extension." Type="Variable" Display="advanced" Required="false" Mask="false">true</Config>
+  <Config Name="Delete texture VPKs" Target="DELETE_TEXTURE_VPKS" Default="false" Mode="" Description="Delete texture packs the server does not need (saves ~9 GB)." Type="Variable" Display="advanced" Required="false" Mask="false">false</Config>
+  <Config Name="Extra launch args" Target="EXTRA_ARGS" Default="" Mode="" Description="Extra srcds arguments, e.g. +sv_setsteamaccount TOKEN or -tickrate 66." Type="Variable" Display="advanced" Required="false" Mask="false"></Config>
+  <Config Name="PUID" Target="PUID" Default="99" Mode="" Description="User ID files are owned by." Type="Variable" Display="advanced" Required="false" Mask="false">99</Config>
+  <Config Name="PGID" Target="PGID" Default="100" Mode="" Description="Group ID files are owned by." Type="Variable" Display="advanced" Required="false" Mask="false">100</Config>
+</Container>

@@ -1,0 +1,23 @@
+services:
+  blackmesa-coop:
+    image: ghcr.io/CHANGE_ME/blackmesa-coop:latest
+    # build: .            # uncomment to build locally instead of pulling
+    container_name: blackmesa-coop
+    restart: unless-stopped
+    stdin_open: true      # lets you `docker attach blackmesa-coop` to use the server console
+    tty: true
+    ports:
+      - "27015:27015/tcp"
+      - "27015:27015/udp"
+      - "27020:27020/udp"   # SourceTV (optional)
+    environment:
+      SERVER_NAME: "Black Mesa: Cooperative"
+      SERVER_PASSWORD: ""
+      RCON_PASSWORD: ""
+      MAXPLAYERS: "32"
+      START_MAP: "bm_c0a0a"
+      UPDATE_ON_START: "true"
+      PUID: "99"
+      PGID: "100"
+    volumes:
+      - ./serverdata:/serverdata

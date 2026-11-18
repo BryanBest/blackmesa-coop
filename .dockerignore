@@ -1,0 +1,6 @@
+.git
+.github
+serverdata
+unraid
+*.md
+docker-compose.yml
