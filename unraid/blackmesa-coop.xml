@@ -19,7 +19,7 @@
   <CPUset/>
   <Requires>Forward 27015 TCP and UDP on your router so friends can join over the internet.</Requires>
 
-  <Config Name="Server data" Target="/serverdata" Default="/mnt/user/appdata/blackmesa-coop" Mode="rw" Description="Game server, addons and configs (~30 GB). Configs live in server/bms/cfg." Type="Path" Display="always" Required="true" Mask="false">/mnt/user/appdata/blackmesa-coop</Config>
+  <Config Name="Server data" Target="/serverdata" Default="/mnt/cache/appdata/blackmesa-coop" Mode="rw" Description="Game server, addons and configs (~30 GB). Must be a direct pool path such as /mnt/cache/..., NOT /mnt/user/... (the 32-bit server crashes on /mnt/user). Keep the appdata share on the pool (no mover to the array)." Type="Path" Display="always" Required="true" Mask="false">/mnt/cache/appdata/blackmesa-coop</Config>
 
   <Config Name="Game port (UDP)" Target="27015" Default="27015" Mode="udp" Description="Main game port." Type="Port" Display="always" Required="true" Mask="false">27015</Config>
   <Config Name="Game port (TCP)" Target="27015" Default="27015" Mode="tcp" Description="RCON / server queries." Type="Port" Display="always" Required="true" Mask="false">27015</Config>

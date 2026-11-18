@@ -32,6 +32,12 @@ SourceCoop updates don't need a new image; restart the container to get them.
    when you see the map `bm_c0a0a` load and `VAC secure mode is activated`.
 5. On your router, forward **27015 TCP and UDP** to the Unraid server's IP address.
 
+**Map Server data to a pool path, not `/mnt/user`.** Use `/mnt/cache/appdata/blackmesa-coop`
+(or `/mnt/<your-pool>/...`). The Black Mesa server is a 32-bit program and can't open files
+through Unraid's `/mnt/user` share layer, which gives files 64-bit inode numbers. On
+`/mnt/user` it crashes at startup with *"Out of memory or address space"*. Also keep the
+`appdata` share on the pool, with no mover to the array.
+
 Keep the host ports the same as the container ports (27015). If you need a different port,
 change both the port mapping and the `PORT` variable to the same value. This makes the
 server advertise the correct port.
@@ -70,7 +76,7 @@ own LAN, use the Unraid server's local IP address.
 | `EXTRA_ARGS` | *(empty)* | Extra srcds arguments, for example `-tickrate 66` |
 | `PUID` / `PGID` | `99` / `100` | Owner of the files in appdata |
 
-### Files in appdata (`/mnt/user/appdata/blackmesa-coop`)
+### Files in appdata (`/mnt/cache/appdata/blackmesa-coop`)
 
 | Path | Notes |
 |---|---|

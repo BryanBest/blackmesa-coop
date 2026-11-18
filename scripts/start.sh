@@ -267,6 +267,20 @@ else
     warn "Could not set stack limit to $STACK_LIMIT_KB KB (current: $(ulimit -Ss)). Add '--ulimit stack=8388608' to the container's extra parameters."
 fi
 
+# 32-bit srcds cannot open files whose inode number does not fit in 32 bits
+# (stat() fails with EOVERFLOW) and reports it as "Out of memory or address
+# space". Unraid's /mnt/user (shfs) hands out 64-bit inode numbers.
+inode="$(stat -c '%i' "$SERVER_DIR/srcds_linux" 2>/dev/null || echo 0)"
+if [ "${#inode}" -gt 10 ] || { [ "${#inode}" -eq 10 ] && [ "$inode" -gt 4294967295 ]; }; then
+    warn "=================================================================="
+    warn "The game files have 64-bit inode numbers (e.g. $inode)."
+    warn "The 32-bit Black Mesa server cannot open them and will crash with"
+    warn "'Out of memory or address space'. On Unraid this happens when the"
+    warn "volume is mapped from /mnt/user/... - map it from the pool directly"
+    warn "instead, e.g. /mnt/cache/appdata/blackmesa-coop."
+    warn "=================================================================="
+fi
+
 log "Starting srcds on port $PORT with map $START_MAP (maxplayers $MAXPLAYERS)..."
 # EXTRA_ARGS is intentionally word-split.
 # shellcheck disable=SC2086
