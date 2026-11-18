@@ -211,11 +211,18 @@ rm -rf "${TMP_DIR:?}"/*
 CFG_DIR="$GAME_DIR/cfg"
 mkdir -p "$CFG_DIR"
 
-# Seeded once; edit them freely in appdata afterwards.
+# Seeded once; edit them freely in appdata afterwards. The game ships its own
+# stock cfg/server.cfg, so "file exists" is not enough: track seeding with a
+# marker and keep the stock file as *.stock.
 for f in server.cfg mapcycle.txt; do
-    if [ ! -f "$CFG_DIR/$f" ]; then
+    if [ ! -f "$VERSIONS_DIR/seeded-$f" ]; then
+        if [ -f "$CFG_DIR/$f" ] && [ ! -f "$CFG_DIR/$f.stock" ]; then
+            mv "$CFG_DIR/$f" "$CFG_DIR/$f.stock"
+            log "Moved the game's stock cfg/$f to cfg/$f.stock"
+        fi
         log "Creating default cfg/$f"
         cp /opt/defaults/"$f" "$CFG_DIR/$f"
+        : > "$VERSIONS_DIR/seeded-$f"
     fi
 done
 for f in autoexec.cfg userconfig.cfg; do
