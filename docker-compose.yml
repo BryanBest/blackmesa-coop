@@ -1,6 +1,6 @@
 services:
   blackmesa-coop:
-    image: ghcr.io/CHANGE_ME/blackmesa-coop:latest
+    image: ghcr.io/bryanbest/blackmesa-coop:latest
     # build: .            # uncomment to build locally instead of pulling
     container_name: blackmesa-coop
     restart: unless-stopped

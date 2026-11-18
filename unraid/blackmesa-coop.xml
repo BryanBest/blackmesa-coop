@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 <Container version="2">
   <Name>BlackMesa-Coop</Name>
-  <Repository>ghcr.io/CHANGE_ME/blackmesa-coop:latest</Repository>
-  <Registry>https://github.com/CHANGE_ME/blackmesa-coop/pkgs/container/blackmesa-coop</Registry>
+  <Repository>ghcr.io/bryanbest/blackmesa-coop:latest</Repository>
+  <Registry>https://github.com/bryanbest/blackmesa-coop/pkgs/container/blackmesa-coop</Registry>
   <Network>bridge</Network>
   <MyIP/>
   <Shell>bash</Shell>
@@ -12,7 +12,7 @@
   <Overview>Black Mesa Dedicated Server running the SourceCoop cooperative mod (Metamod:Source + SourceMod). The game server (~30 GB) is downloaded into the appdata folder on first start and updated on every restart. Use the container console (or docker attach) for the server console.</Overview>
   <Category>GameServers:</Category>
   <WebUI/>
-  <TemplateURL/>
+  <TemplateURL>https://raw.githubusercontent.com/BryanBest/blackmesa-coop/main/unraid/blackmesa-coop.xml</TemplateURL>
   <Icon>https://raw.githubusercontent.com/ampreeT/SourceCoop/master/images/logo-sc.png</Icon>
   <ExtraParams>-it --restart=unless-stopped</ExtraParams>
   <PostArgs/>

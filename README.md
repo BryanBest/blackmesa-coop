@@ -12,20 +12,11 @@ component when its version has changed. It follows the steps of SourceCoop's
 
 ## 1. Publish the image (one-time)
 
-1. Create a GitHub repository (for example `blackmesa-coop`) and push this folder to it:
-   ```bash
-   git init -b main
-   git add .
-   git commit -m "Black Mesa SourceCoop server image"
-   git remote add origin https://github.com/<you>/blackmesa-coop.git
-   git push -u origin main
-   ```
-2. The **Build and publish image** workflow builds `ghcr.io/<you>/blackmesa-coop:latest`.
+1. Push to `main` on https://github.com/BryanBest/blackmesa-coop.
+2. The **Build and publish image** workflow builds `ghcr.io/bryanbest/blackmesa-coop:latest`.
    Check its progress in the repository's **Actions** tab.
-3. Under **Packages → blackmesa-coop → Package settings**, set visibility to **Public**.
+3. Under **Packages → blackmesa-coop → Package settings**, make sure visibility is **Public**.
    Otherwise, Unraid needs a GitHub token to pull the image.
-4. Replace `CHANGE_ME` with your GitHub username (lowercase) in
-   `unraid/blackmesa-coop.xml` and `docker-compose.yml`.
 
 The workflow also rebuilds weekly to pick up Debian security updates. Game, SourceMod and
 SourceCoop updates don't need a new image; restart the container to get them.
