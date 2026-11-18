@@ -19,6 +19,7 @@ APP_ID=346680
 : "${MAXPLAYERS:=32}" "${START_MAP:=bm_c0a0a}" "${PORT:=27015}" "${TV_PORT:=27020}" "${CLIENT_PORT:=27005}"
 : "${UPDATE_ON_START:=true}" "${VALIDATE:=false}" "${SOURCECOOP_VERSION:=latest}" "${METAMOD_BRANCH:=1.12}"
 : "${SOURCEMOD_URL:=}" "${INSTALL_ACCELERATOR:=true}" "${DELETE_TEXTURE_VPKS:=false}" "${EXTRA_ARGS:=}"
+: "${STACK_LIMIT_KB:=8192}"
 
 export HOME="${HOME:-$DATA_DIR/home}"
 
@@ -255,6 +256,17 @@ fi
 # Launch
 # --------------------------------------------------------------------------
 cd "$SERVER_DIR"
+
+# srcds is a 32-bit process. With an unlimited stack rlimit (Unraid's Docker
+# default) the kernel uses the legacy bottom-up mmap layout for it, which
+# leaves too little contiguous address space and the engine dies with
+# "Out of memory or address space". Use the normal 8 MB default instead.
+if ulimit -Ss "$STACK_LIMIT_KB" 2>/dev/null; then
+    log "Stack limit set to $(ulimit -Ss) KB (was required for 32-bit srcds)."
+else
+    warn "Could not set stack limit to $STACK_LIMIT_KB KB (current: $(ulimit -Ss)). Add '--ulimit stack=8388608' to the container's extra parameters."
+fi
+
 log "Starting srcds on port $PORT with map $START_MAP (maxplayers $MAXPLAYERS)..."
 # EXTRA_ARGS is intentionally word-split.
 # shellcheck disable=SC2086
