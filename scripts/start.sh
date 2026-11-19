@@ -21,6 +21,7 @@ APP_ID=346680
 : "${SOURCEMOD_URL:=}" "${INSTALL_ACCELERATOR:=true}" "${DELETE_TEXTURE_VPKS:=false}" "${EXTRA_ARGS:=}"
 : "${STACK_LIMIT_KB:=8192}"
 : "${AUTOSAVE:=true}" "${RESUME_PROGRESS:=true}" "${AUTOSAVE_INTERVAL:=120}"
+: "${READYUP:=true}" "${READYUP_TIMEOUT:=600}" "${READYUP_IDLE_RELOAD:=600}"
 
 export HOME="${HOME:-$DATA_DIR/home}"
 
@@ -211,13 +212,19 @@ rm -rf "${TMP_DIR:?}"/*
 # these files, so they are refreshed on every start.
 SM_PLUGINS_DIR="$GAME_DIR/addons/sourcemod/plugins"
 SAVE_DIR="$GAME_DIR/addons/sourcemod/data/srccoop/savedata"
+mkdir -p "$SM_PLUGINS_DIR"
+cp -f /opt/plugins/*.smx "$SM_PLUGINS_DIR/"
 if is_true "$AUTOSAVE"; then
-    mkdir -p "$SM_PLUGINS_DIR"
-    cp -f /opt/plugins/*.smx "$SM_PLUGINS_DIR/"
     log "Autosave plugin enabled (saves every ${AUTOSAVE_INTERVAL}s)."
 else
     rm -f "$SM_PLUGINS_DIR/srccoop_autosave.smx"
     log "AUTOSAVE=false - autosave plugin disabled."
+fi
+if is_true "$READYUP"; then
+    log "Ready-up plugin enabled (time limit ${READYUP_TIMEOUT}s, idle reload ${READYUP_IDLE_RELOAD}s)."
+else
+    rm -f "$SM_PLUGINS_DIR/srccoop_readyup.smx"
+    log "READYUP=false - ready-up plugin disabled."
 fi
 
 # --------------------------------------------------------------------------
@@ -260,6 +267,10 @@ q() { local v="${1//\"/}"; v="${v//$'\n'/ }"; printf '"%s"' "$v"; }
     echo "sv_lan 0"
     if is_true "$AUTOSAVE"; then
         echo "sc_autosave_interval $(q "$AUTOSAVE_INTERVAL")"
+    fi
+    if is_true "$READYUP"; then
+        echo "sc_readyup_timeout $(q "$READYUP_TIMEOUT")"
+        echo "sc_readyup_idle_reload $(q "$READYUP_IDLE_RELOAD")"
     fi
 } > "$CFG_DIR/docker.cfg"
 

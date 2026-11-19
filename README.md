@@ -76,6 +76,9 @@ own LAN, use the Unraid server's local IP address.
 | `AUTOSAVE` | `true` | Save the current map and each player's gear automatically (see [Progress and autosave](#progress-and-autosave)) |
 | `RESUME_PROGRESS` | `true` | On start, load the last saved map instead of `START_MAP` |
 | `AUTOSAVE_INTERVAL` | `120` | Seconds between gear saves |
+| `READYUP` | `true` | Wait for everyone to type `!ready` at the start of a session (see [Ready-up](#ready-up)) |
+| `READYUP_TIMEOUT` | `600` | Seconds to wait for `!ready` before starting anyway. `0` means wait until everyone is ready |
+| `READYUP_IDLE_RELOAD` | `600` | Reload the current map after the server has been empty this long, so the next session waits for ready-up. `0` turns it off |
 | `EXTRA_ARGS` | *(empty)* | Extra srcds arguments, for example `-tickrate 66` |
 | `PUID` / `PGID` | `99` / `100` | Owner of the files in appdata |
 
@@ -155,6 +158,27 @@ just before restarting the container.
 
 Save files live in `server/bms/addons/sourcemod/data/srccoop/savedata/`:
 `autosave_map.txt`, `autosave.txt` and one file per player in `players/`.
+
+## Ready-up
+
+A second bundled plugin, `srccoop_readyup` ([source](plugin/srccoop_readyup.sp)), holds the
+start of a session until your group is in:
+
+- On the **first map after the server starts**, everyone who joins stays frozen in the
+  intro. A message at the top of the screen shows how many players are ready.
+- Each player types **`!ready`** in chat (`!unready` to undo). The map starts with
+  SourceCoop's normal 3-2-1 countdown when everyone in game is ready **and nobody is still
+  loading in**.
+- **`!forcestart`** starts a yes/no vote to begin without waiting, for example when someone
+  is AFK. Admins start immediately without a vote.
+- After `READYUP_TIMEOUT` seconds (10 minutes by default, counted from when the first player
+  is in), the map starts anyway.
+- Map changes during the campaign aren't affected.
+- When the server has been **empty for 10 minutes** (`READYUP_IDLE_RELOAD`), it reloads the
+  current map. The next session then waits for ready-up again, and autosave gives everyone
+  their gear back.
+
+Set `READYUP=false` to turn it off.
 
 ## About the SourceMod version
 

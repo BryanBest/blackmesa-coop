@@ -8,8 +8,9 @@
  *    keeps one file per player (players/<accountid>.txt) so players who left
  *    earlier keep their gear. These are combined into autosave.txt, which is
  *    the format SourceCoop's `sc_load` reads.
- *  - On the first map after a server start, restores each returning player's
- *    gear once with `sc_load autosave.txt #<userid>`.
+ *  - On the first map after a server start (or a map loaded while the server
+ *    was empty), restores each returning player's gear once with
+ *    `sc_load autosave.txt #<userid>`.
  *
  * Mid-map position is not saved; players restart at the map's spawn.
  */
@@ -37,6 +38,8 @@ ConVar g_cvEnabled;
 ConVar g_cvInterval;
 
 int g_iMapStarts;            // number of maps started since the plugin loaded
+bool g_bRestoreWindow;       // this map started on a fresh/empty server
+bool g_bHumansAtMapEnd;      // someone was connected when the last map ended
 float g_fSinceSave;          // seconds since the last periodic save
 StringMap g_smPending;       // account ids waiting for their restore (this boot)
 StringMap g_smRestored;      // account ids already restored (this boot)
@@ -73,6 +76,15 @@ public void OnMapStart()
 	g_iMapStarts++;
 	g_fSinceSave = 0.0;
 
+	// Restore on the first map after a server start, and on a map loaded
+	// while nobody was connected (e.g. the ready-up idle reload). Normal map
+	// changes keep players connected, and SourceCoop carries their gear.
+	g_bRestoreWindow = g_iMapStarts <= 1 || !g_bHumansAtMapEnd;
+	if (g_bRestoreWindow && g_iMapStarts > 1)
+	{
+		g_smRestored.Clear();
+	}
+
 	if (!g_cvEnabled.BoolValue)
 		return;
 
@@ -93,10 +105,22 @@ public void OnMapStart()
 	}
 }
 
-// Restores only happen on the first map after the server started.
+public void OnMapEnd()
+{
+	g_bHumansAtMapEnd = false;
+	for (int i = 1; i <= MaxClients; i++)
+	{
+		if (IsClientConnected(i) && !IsFakeClient(i))
+		{
+			g_bHumansAtMapEnd = true;
+			break;
+		}
+	}
+}
+
 bool InRestoreWindow()
 {
-	return g_iMapStarts <= 1;
+	return g_bRestoreWindow;
 }
 
 // --------------------------------------------------------------------------
